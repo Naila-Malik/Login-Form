@@ -1,61 +1,60 @@
-import {Alert, Keyboard, StyleSheet, Text, View} from 'react-native';
-import React, {useState} from 'react';
-import {SafeAreaView} from 'react-native-safe-area-context';
-import {ScrollView} from 'react-native-gesture-handler';
-import COLORS from '../../conts/colors';
-import Input from '../components/Input';
-import Buttons from '../components/Buttons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import React from 'react';
+import {
+  View,
+  Text,
+  SafeAreaView,
+  Keyboard,
+  ScrollView,
+  Alert,
+} from 'react-native';
+
+import COLORS from '../../conts/colors';
+import Buttons from '../components/Buttons';
+import Input from '../components/Input';
 import Loader from '../components/Loader';
-<script src="http://192.168.100.19:8097"></script>;
 
-export default function RegistrationScreen({navigation}) {
-  const [errorEmail, setErrorEmail] = useState('');
-  const [errorFullname, setErrorFullname] = useState('');
-  const [errorPhonenumber, setErrorPhonenumber] = useState('');
-  const [errorPassword, setErrorPassword] = useState('');
-
-  const [email, setEmail] = useState('');
-  const [fullname, setFullname] = useState('');
-  const [phonenumber, setPhonenumber] = useState('');
-  const [password, setPassword] = useState('');
-
-  const [loading, setLoading] = useState(false);
-
-  // const [inputs, setInputs] = useState({
-  //   email: '',
-  //   fullname: '',
-  //   phoneNumber: '',
-  //   password: '',
-  // });
+const RegistrationScreen = ({navigation}) => {
+  const [inputs, setInputs] = React.useState({
+    email: '',
+    fullname: '',
+    phone: '',
+    password: '',
+  });
+  const [errors, setErrors] = React.useState({});
+  const [loading, setLoading] = React.useState(false);
 
   const validate = () => {
     Keyboard.dismiss();
-    let validate = true;
+    let isValid = true;
 
-    if (!email) {
-      setErrorEmail('Please input email');
-      validate = false;
-    } else if (!email.match(/\S+@\S+\.\S+/)) {
-      setErrorEmail('Please enter a valid email');
-      validate = false;
+    if (!inputs.email) {
+      handleError('Please input email', 'email');
+      isValid = false;
+    } else if (!inputs.email.match(/\S+@\S+\.\S+/)) {
+      handleError('Please input a valid email', 'email');
+      isValid = false;
     }
 
-    if (!fullname) {
-      setErrorFullname('Please input fullname');
-      validate = false;
+    if (!inputs.fullname) {
+      handleError('Please input fullname', 'fullname');
+      isValid = false;
     }
-    if (!phonenumber) {
-      setErrorPhonenumber('Please input phonenumber');
-      validate = false;
+
+    if (!inputs.phone) {
+      handleError('Please input phone number', 'phone');
+      isValid = false;
     }
-    if (!password) {
-      setErrorPassword('Please input password');
-      validate = false;
-    } else if (password.length < 5) {
-      setErrorPassword('Min password length of 5');
+
+    if (!inputs.password) {
+      handleError('Please input password', 'password');
+      isValid = false;
+    } else if (inputs.password.length < 5) {
+      handleError('Min password length of 5', 'password');
+      isValid = false;
     }
-    if (validate) {
+
+    if (isValid) {
       register();
     }
   };
@@ -63,87 +62,86 @@ export default function RegistrationScreen({navigation}) {
   const register = () => {
     setLoading(true);
     setTimeout(() => {
-      setLoading(false);
       try {
-        AsyncStorage.setItem(
-          'user',
-          JSON.stringify(email, fullname, phonenumber, password),
-        );
+        setLoading(false);
+        AsyncStorage.setItem('userData', JSON.stringify(inputs));
         navigation.navigate('LoginScreen');
       } catch (error) {
-        Alert.alert('Something went wrong');
+        Alert.alert('Error', 'Something went wrong');
       }
     }, 3000);
   };
-  // const handleError = (errorMessage, input) => {
-  //   setErrors(prevState => ({...prevState, [input]: errorMessage}));
-  // };
+
+  const handleOnchange = (text, input) => {
+    setInputs(prevState => ({...prevState, [input]: text}));
+  };
+  const handleError = (error, input) => {
+    setErrors(prevState => ({...prevState, [input]: error}));
+  };
+
   return (
     <SafeAreaView style={{backgroundColor: COLORS.white, flex: 1}}>
       <Loader visible={loading} />
       <ScrollView
-        contentContainerStyle={{
-          paddingTop: 50,
-          paddingHorizontal: 20,
-        }}>
+        contentContainerStyle={{paddingTop: 50, paddingHorizontal: 20}}>
         <Text style={{color: COLORS.black, fontSize: 40, fontWeight: 'bold'}}>
-          {' '}
           Register
         </Text>
         <Text style={{color: COLORS.grey, fontSize: 18, marginVertical: 10}}>
-          {' '}
           Enter Your Details to Register
         </Text>
-        <View style={{marginVertical: 20}}></View>
-        <Input
-          placeholder="Please Enter your Email"
-          label="Email"
-          iconName="email"
-          onChangeText={newText => setEmail(newText)}
-          error={errorEmail}
-          onFocus={() => setErrorEmail('')}
-        />
+        <View style={{marginVertical: 20}}>
+          <Input
+            onChangeText={text => handleOnchange(text, 'email')}
+            onFocus={() => handleError(null, 'email')}
+            iconName="email"
+            label="Email"
+            placeholder="Enter your email address"
+            error={errors.email}
+          />
 
-        <Input
-          placeholder="Please Enter your fullname"
-          label="fullname"
-          iconName="person"
-          onChangeText={newText => setFullname(newText)}
-          error={errorFullname}
-          onFocus={() => setErrorFullname('')}
-        />
-        <Input
-          placeholder="Please Enter your phonenumber"
-          label="PhoneNumber"
-          iconName="phone"
-          keyboardType="numeric"
-          onChangeText={newText => setPhonenumber(newText)}
-          error={errorPhonenumber}
-          onFocus={() => setErrorPhonenumber('')}
-        />
-        <Input
-          placeholder="Please Enter your Password"
-          label="Password"
-          iconName="locked"
-          password
-          onChangeText={newText => setPassword(newText)}
-          error={errorPassword}
-          onFocus={() => setErrorPassword('')}
-        />
-        <Buttons title="Register" onPress={validate} />
-        <Text
-          onPress={() => navigation.navigate('LoginScreen')}
-          style={{
-            color: COLORS.black,
-            textAlign: 'center',
-            fontSize: 16,
-            fontWeight: 'bold',
-          }}>
-          Already have an account? Login{' '}
-        </Text>
+          <Input
+            onChangeText={text => handleOnchange(text, 'fullname')}
+            onFocus={() => handleError(null, 'fullname')}
+            iconName="person"
+            label="Full Name"
+            placeholder="Enter your full name"
+            error={errors.fullname}
+          />
+
+          <Input
+            keyboardType="numeric"
+            onChangeText={text => handleOnchange(text, 'phone')}
+            onFocus={() => handleError(null, 'phone')}
+            iconName="phone"
+            label="Phone Number"
+            placeholder="Enter your phone no"
+            error={errors.phone}
+          />
+          <Input
+            onChangeText={text => handleOnchange(text, 'password')}
+            onFocus={() => handleError(null, 'password')}
+            iconName="locked"
+            label="Password"
+            placeholder="Enter your password"
+            error={errors.password}
+            password
+          />
+          <Buttons title="Register" onPress={validate} />
+          <Text
+            onPress={() => navigation.navigate('LoginScreen')}
+            style={{
+              color: COLORS.black,
+              fontWeight: 'bold',
+              textAlign: 'center',
+              fontSize: 16,
+            }}>
+            Already have account ?Login
+          </Text>
+        </View>
       </ScrollView>
     </SafeAreaView>
   );
-}
+};
 
-const styles = StyleSheet.create({});
+export default RegistrationScreen;

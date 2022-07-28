@@ -1,6 +1,7 @@
 import {StyleSheet, Text, View} from 'react-native';
 import React, {useEffect, useState} from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import Buttons from '../components/Buttons';
 
 export default function HomeScreen({navigation}) {
   const [userDetails, setUserDetails] = useState();
@@ -17,6 +18,13 @@ export default function HomeScreen({navigation}) {
       setUserDetails(JSON.parse(userData));
     }
   };
+  const logout = () => {
+    AsyncStorage.setItem(
+      'user',
+      JSON.stringify({...userDetails, loggedIn: false}),
+    );
+    navigation.navigate('LoginScreen');
+  };
 
   return (
     <View
@@ -30,6 +38,7 @@ export default function HomeScreen({navigation}) {
         {' '}
         Welcome Screen {userDetails}
       </Text>
+      <Buttons title="Logout" onPress={logout} />
     </View>
   );
 }

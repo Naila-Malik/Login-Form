@@ -32,6 +32,7 @@ const LoginScreen = ({navigation}) => {
     setTimeout(async () => {
       setLoading(false);
       let userData = await AsyncStorage.getItem('userData');
+
       if (userData) {
         userData = JSON.parse(userData);
         if (
@@ -59,6 +60,7 @@ const LoginScreen = ({navigation}) => {
   const handleError = (error, input) => {
     setErrors(prevState => ({...prevState, [input]: error}));
   };
+
   return (
     <SafeAreaView style={{backgroundColor: COLORS.white, flex: 1}}>
       <Loader visible={loading} />
